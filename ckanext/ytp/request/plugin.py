@@ -1,12 +1,16 @@
 import ckan.plugins as plugins
 from ckan.plugins import implements, toolkit
+from ckanext_ytp_request.logic.action import get, create, update, delete
 import logging
 
 log = logging.getLogger(__name__)
 
 
 class YtpRequestPlugin(plugins.SingletonPlugin):
+    '''
     implements(plugins.IRoutes, inherit=True)
+    '''
+    implements(plugin.IBleuprint)
     implements(plugins.IConfigurer, inherit=True)
     implements(plugins.IActions, inherit=True)
     implements(plugins.IAuthFunctions, inherit=True)
@@ -17,10 +21,12 @@ class YtpRequestPlugin(plugins.SingletonPlugin):
         toolkit.add_public_directory(config, 'public')
         toolkit.add_resource('public/javascript/', 'request_js')
 
+    # bleuprint
+    def get_bleuprint(self):
+        return [bleuprint.ytp_request]
+
     # IActions
     def get_actions(self):
-        from ckanext.ytp.request.logic.action import get, create, update, delete
-
         return {
             "member_request_create": create.member_request_create,
             "member_request_cancel": delete.member_request_cancel,
@@ -35,8 +41,6 @@ class YtpRequestPlugin(plugins.SingletonPlugin):
 
     # IAuthFunctions
     def get_auth_functions(self):
-        from ckanext.ytp.request.logic.auth import get, create, update, delete
-
         return {
             "member_request_create": create.member_request_create,
             "member_request_cancel": delete.member_request_cancel,
@@ -48,24 +52,34 @@ class YtpRequestPlugin(plugins.SingletonPlugin):
             "member_request_show": get.member_request
         }
 
+    '''
     # IRoutes #
     def before_map(self, m):
         """ CKAN autocomplete discards vocabulary_id from request. Create own api for this. """
         controller = 'ckanext.ytp.request.controller:YtpRequestController'
+        //
         m.connect('member_request_create', '/member-request/new',
                   action='new', controller=controller)
+        //
         m.connect('member_requests_mylist', '/member-request/mylist',
                   action='mylist', controller=controller)
+        //
         m.connect('member_requests_list', '/member-request/list',
                   action='list', controller=controller)
+        //
         m.connect('member_request_reject',
                   '/member-request/reject/{mrequest_id}', action='reject', controller=controller)
+        //
         m.connect('member_request_approve',
                   '/member-request/approve/{mrequest_id}', action='approve', controller=controller)
+        //
         m.connect('member_request_cancel', '/member-request/cancel',
                   action='cancel', controller=controller)
+        //
         m.connect('member_request_membership_cancel',
                   '/member-request/membership-cancel/{organization_id}', action='membership_cancel', controller=controller),
+        //
         m.connect('member_request_show',
                   '/member-request/{mrequest_id}', action='show', controller=controller)
         return m
+    '''

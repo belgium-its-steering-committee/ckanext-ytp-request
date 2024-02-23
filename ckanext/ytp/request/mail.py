@@ -1,6 +1,6 @@
 from ckan.lib.i18n import set_lang, get_lang
 from ckan.lib.mailer import mail_user
-from pylons import i18n
+#from pylons import i18n
 from ckan.common import _
 import logging
 

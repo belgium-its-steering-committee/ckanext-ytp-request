@@ -2,8 +2,8 @@ from ckan import model
 from ckan.common import c
 from ckan.lib import helpers
 from sqlalchemy.sql.expression import or_
-from pylons import config
-
+#from pylons import config
+import ckan.plugins.toolkit as toolkit
 
 def get_user_member(organization_id, state=None):
     """ Helper function to get member states """
@@ -34,7 +34,8 @@ def get_ckan_admins():
 
 
 def get_default_locale():
-    return config.get('ckan.locale_default', 'en')
+    return toolkit.config.get('ckan.locale_default', 'en')
+    #return config.get('ckan.locale_default', 'en')
 
 
 def get_safe_locale():
