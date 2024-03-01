@@ -9,7 +9,12 @@ def member_request_create(context, data_dict):
     """
     Only allow to logged in users
     """
-    if not authz.auth_is_loggedin_user():
+    print("\n\t CONTEXT::", context)
+    print("\n\t DATA_DICT::", data_dict)
+    print("\n")
+    #check login functie!!!
+    context_user = context.get('__auth_user_obj_checked',None)
+    if not context_user:
         return {'success': False, 'msg': _('User is not logged in')}
 
     organization_id = None if not data_dict else data_dict.get(

@@ -8,6 +8,7 @@ from ckanext.ytp.request.mail import mail_new_membership_request
 from ckanext.ytp.request.helper import get_safe_locale
 import logging
 import ckan.authz as authz
+import ckan.lib.helpers as helpers
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +22,6 @@ def member_request_create(context, data_dict):
     :type context: dict
     :type data_dict: dict
     """
-    logic.check_access('member_request_create', context, data_dict)
     member = _create_member_request(context, data_dict)
     return model_dictize.member_dictize(member, context)
 
@@ -37,13 +37,12 @@ def _create_member_request(context, data_dict):
     role = data_dict.get('role', None)
     if not role:
         raise logic.NotFound
+    
     group = model.Group.get(data_dict.get('group', None))
-
     if not group or group.type != 'organization':
         raise logic.NotFound
 
     user = context.get('user', None)
-
     if authz.is_sysadmin(user):
         raise logic.ValidationError({}, {_("Role"): _(
             "As a sysadmin, you already have access to all organizations")})

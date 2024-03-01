@@ -1,6 +1,10 @@
 import ckan.plugins as plugins
 from ckan.plugins import implements, toolkit
-from ckanext_ytp_request.logic.action import get, create, update, delete
+#TODO refactor logic.action
+from ckanext.ytp.request.logic.action import get, create, update, delete
+from ckanext.ytp.request.logic.auth import get as auth_get, create as auth_create, update as auth_update, delete as auth_delete
+                                            
+from ckanext.ytp.request import blueprint
 import logging
 
 log = logging.getLogger(__name__)
@@ -10,7 +14,7 @@ class YtpRequestPlugin(plugins.SingletonPlugin):
     '''
     implements(plugins.IRoutes, inherit=True)
     '''
-    implements(plugin.IBleuprint)
+    implements(plugins.IBlueprint)
     implements(plugins.IConfigurer, inherit=True)
     implements(plugins.IActions, inherit=True)
     implements(plugins.IAuthFunctions, inherit=True)
@@ -22,8 +26,8 @@ class YtpRequestPlugin(plugins.SingletonPlugin):
         toolkit.add_resource('public/javascript/', 'request_js')
 
     # bleuprint
-    def get_bleuprint(self):
-        return [bleuprint.ytp_request]
+    def get_blueprint(self):
+        return [blueprint.ytp_request]
 
     # IActions
     def get_actions(self):
@@ -42,14 +46,14 @@ class YtpRequestPlugin(plugins.SingletonPlugin):
     # IAuthFunctions
     def get_auth_functions(self):
         return {
-            "member_request_create": create.member_request_create,
-            "member_request_cancel": delete.member_request_cancel,
-            "member_request_reject": update.member_request_reject,
-            "member_request_approve": update.member_request_approve,
-            "member_request_membership_cancel": delete.member_request_membership_cancel,
-            "member_requests_list": get.member_requests_list,
-            "member_requests_mylist": get.member_requests_mylist,
-            "member_request_show": get.member_request
+            "member_request_create": auth_create.member_request_create,
+            "member_request_cancel": auth_delete.member_request_cancel,
+            "member_request_reject": auth_update.member_request_reject,
+            "member_request_approve": auth_update.member_request_approve,
+            "member_request_membership_cancel": auth_delete.member_request_membership_cancel,
+            "member_requests_list": auth_get.member_requests_list,
+            "member_requests_mylist": auth_get.member_requests_mylist,
+            "member_request_show": auth_get.member_request
         }
 
     '''

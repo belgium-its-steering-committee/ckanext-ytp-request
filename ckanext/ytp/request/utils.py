@@ -20,31 +20,35 @@ def _list_organizations(context, errors=None, error_summary=None):
     # has a pending request
     return toolkit.get_action('organization_list')({}, data_dict)
 
-def new(self, errors=None, error_summary=None):
+def new(organization, errors=None, error_summary=None):
+    """
+    data_dict:
+    moet 'role' en 'group' bevatten
+    """
     context = {'user': c.user or c.author,
                 'save': 'save' in toolkit.request.params}
+    
     try:
         logic.check_access('member_request_create', context)
     except toolkit.NotAuthorized:
-        toolkit.abort(401, self.not_auth_message)
+        toolkit.abort(401, errors.not_auth_message)
 
-    organizations = self._list_organizations(context)
+    organizations = _list_organizations(context)
 
     if context.get('save') and not errors:
-        return self._save_new(context)
+        return _save_new(context)
 
     # FIXME: Don't send as request parameter selected organization. kinda
     # weird
-    selected_organization = toolkit.request.params.get(
-        'selected_organization', None)
+    selected_organization = organization
     extra_vars = {'selected_organization': selected_organization, 'organizations': organizations,
                     'errors': errors or {}, 'error_summary': error_summary or {}}
-    c.roles = self._get_available_roles(context, selected_organization)
+    c.roles = _get_available_roles(context, selected_organization)
     c.user_role = 'admin'
     c.form = toolkit.render("request/new_request_form.html", extra_vars=extra_vars)
     return toolkit.render("request/new.html")
 
-def _save_new(self, context):
+def _save_new(context):
     try:
         data_dict = logic.clean_dict(dict_fns.unflatten(
             logic.tuplize_dict(logic.parse_params(toolkit.request.params))))
@@ -158,7 +162,7 @@ def membership_cancel(self, organization_id):
     except logic.NotFound:
         toolkit.abort(404, self.request_not_found_message)
 
-def _get_available_roles(self, context, organization_id):
+def _get_available_roles(context, organization_id):
     data_dict = {'organization_id': organization_id}
     return toolkit.get_action('get_available_roles')(context, data_dict)
 
