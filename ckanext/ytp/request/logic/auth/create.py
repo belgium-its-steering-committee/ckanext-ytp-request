@@ -9,10 +9,7 @@ def member_request_create(context, data_dict):
     """
     Only allow to logged in users
     """
-    print("\n\t CONTEXT::", context)
-    print("\n\t DATA_DICT::", data_dict)
-    print("\n")
-    #check login functie!!!
+    #TODO check login functie!!!
     context_user = context.get('__auth_user_obj_checked',None)
     if not context_user:
         return {'success': False, 'msg': _('User is not logged in')}
