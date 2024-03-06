@@ -13,23 +13,25 @@ request_not_found_message = _('Request not found')
 
 def _list_organizations(context, errors=None, error_summary=None):
     data_dict = {}
+    context = {}
+    data_dict['limit']= 1000
     data_dict['all_fields'] = True
-    data_dict['groups'] = []
-    data_dict['type'] = 'organization'
+    data_dict['include_datset_count'] = False
+    data_dict['include_extras'] = False
+    data_dict['include_tags']= False
+    data_dict['include_users'] = False
     # TODO: Filter our organizations where the user is already a member or
+    # Set in config: ckan.group_and_organization_list_max to...
     # has a pending request
-    return toolkit.get_action('organization_list')({}, data_dict)
+    return toolkit.get_action('organization_list')(context, data_dict)
 
-def new(organization, errors=None, error_summary=None):
-    """
-    data_dict:
-    moet 'role' en 'group' bevatten
-    """
+def new(organization_id, errors=None, error_summary=None):
+    #TODO WHERE DOES SAVE COMMES FROM (SAVE FROM URL?)
     context = {'user': c.user or c.author,
                 'save': 'save' in toolkit.request.params}
-    
+
     try:
-        logic.check_access('member_request_create', context)
+        toolkit.check_access('member_request_create', context)
     except toolkit.NotAuthorized:
         toolkit.abort(401, errors.not_auth_message)
 
@@ -40,11 +42,15 @@ def new(organization, errors=None, error_summary=None):
 
     # FIXME: Don't send as request parameter selected organization. kinda
     # weird
-    selected_organization = organization
+    selected_organization = str(organization_id)
     extra_vars = {'selected_organization': selected_organization, 'organizations': organizations,
                     'errors': errors or {}, 'error_summary': error_summary or {}}
     c.roles = _get_available_roles(context, selected_organization)
     c.user_role = 'admin'
+    print("ORGANIZATIONS:: ")
+    for org in organizations:
+        print("\t", org['id'])
+    print("\n\t SELECTED ORGANIZATION:: ", organization_id)
     c.form = toolkit.render("request/new_request_form.html", extra_vars=extra_vars)
     return toolkit.render("request/new.html")
 
@@ -127,10 +133,10 @@ def list(self):
     except logic.NotAuthorized:
         toolkit.abort(401, self.not_auth_message)
 
-def cancel(self):
+def cancel(organization_id, errors=None, error_summary=None):
     """ Logged in user can cancel pending requests not approved yet by admins/editors"""
     context = {'user': c.user or c.author}
-    organization_id = toolkit.request.params.get('organization_id', None)
+    #organization_id = toolkit.request.params.get('organization_id', None)
     try:
         toolkit.get_action('member_request_cancel')(
             context, {"organization_id": organization_id})
@@ -149,7 +155,7 @@ def approve(self, mrequest_id):
     """ Controller to approve member request (only admins or group editors can do that) """
     return self._processbyadmin(mrequest_id, True)
 
-def membership_cancel(self, organization_id):
+def membership_cancel(organization_id, errors=None, error_summary=None):
     """ Logged in user can cancel already approved/existing memberships """
     context = {'user': c.user or c.author}
     try:

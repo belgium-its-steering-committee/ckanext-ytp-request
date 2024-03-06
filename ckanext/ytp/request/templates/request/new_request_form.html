@@ -13,7 +13,7 @@
         <select id="field-organizations" name="organization" data-module="autocomplete">
           <option value="" {% if not selected_organization %} selected="selected" {% endif %}>{{ _('Select an organization...') }}</option>
           {% for organization in organizations %}
-            {% set select = (selected_organization and selected_organization == organization.name) %}
+            {% set select = (selected_organization and selected_organization == organization.id) %}
             <option value="{{ organization.id }}" {% if select %} selected="selected" {% endif %}>{{ organization.name }}</option>
           {% endfor %}
         </select>
