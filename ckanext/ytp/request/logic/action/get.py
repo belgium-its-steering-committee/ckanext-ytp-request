@@ -40,6 +40,7 @@ def member_request(context, data_dict):
         'request_date': member_request_obj.request_date.strftime("%d - %b - %Y"),
         'user_id': membership.table_id
     }
+    print("\n\t MEMBER_REQUEST RETRUN::", member_dict)
     return member_dict
 
 

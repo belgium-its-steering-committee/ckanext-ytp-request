@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 not_auth_message = _('Unauthorized')
 request_not_found_message = _('Request not found')
 
-def _list_organizations(context, errors=None, error_summary=None):
+def _list_organizations():
     data_dict = {}
     context = {}
     data_dict['limit']= 1000
@@ -23,22 +23,25 @@ def _list_organizations(context, errors=None, error_summary=None):
     # TODO: Filter our organizations where the user is already a member or
     # Set in config: ckan.group_and_organization_list_max to...
     # has a pending request
+    #print("\n\t",toolkit.get_action('organization_list')(context, data_dict),"\n" )
     return toolkit.get_action('organization_list')(context, data_dict)
 
 def new(organization_id, errors=None, error_summary=None):
-    #TODO WHERE DOES SAVE COMMES FROM (SAVE FROM URL?)
     context = {'user': c.user or c.author,
-                'save': 'save' in toolkit.request.params}
-
+               'save': toolkit.request.form.get('form_save_new_request'),
+                }
+    data_dict= {'organization_id': organization_id,
+                'role': toolkit.request.form.get('role')
+                }
     try:
         toolkit.check_access('member_request_create', context)
     except toolkit.NotAuthorized:
         toolkit.abort(401, errors.not_auth_message)
 
-    organizations = _list_organizations(context)
+    organizations = _list_organizations()
 
     if context.get('save') and not errors:
-        return _save_new(context)
+        return _save_new(context, data_dict)
 
     # FIXME: Don't send as request parameter selected organization. kinda
     # weird
@@ -47,24 +50,28 @@ def new(organization_id, errors=None, error_summary=None):
                     'errors': errors or {}, 'error_summary': error_summary or {}}
     c.roles = _get_available_roles(context, selected_organization)
     c.user_role = 'admin'
-    print("ORGANIZATIONS:: ")
-    for org in organizations:
-        print("\t", org['id'])
-    print("\n\t SELECTED ORGANIZATION:: ", organization_id)
     c.form = toolkit.render("request/new_request_form.html", extra_vars=extra_vars)
     return toolkit.render("request/new.html")
 
-def _save_new(context):
+def _save_new(context, data_dict):
     try:
-        data_dict = logic.clean_dict(dict_fns.unflatten(
-            logic.tuplize_dict(logic.parse_params(toolkit.request.params))))
-        data_dict['group'] = data_dict['organization']
-        # TODO: Do we need info message at the UI level when e-mail could
-        # not be sent?
-        member = toolkit.get_action(
-            'member_request_create')(context, data_dict)
-        helpers.redirect_to('organizations_index',
-                            id="newrequest", membership_id=member['id'])
+        #data_dict = logic.clean_dict(dict_fns.unflatten(
+            #logic.tuplize_dict(logic.parse_params(toolkit.request.url))))
+        #data_dict['group'] = data_dict['organization']
+        #create member request action - returns unique memberId
+        #member = toolkit.get_action('member_request_create')(context, data_dict)
+        
+        #member = toolkit.get_action(
+            #'member_request_create')(context, data_dict)
+        
+        #redirect to requested organization-page
+        data_dict['group'] = data_dict['organization_id']
+        #Start email request proces
+        toolkit.get_action("member_request_create")(context, data_dict)
+        #Return view to requested organization
+        return helpers.redirect_to('organization.read',id=data_dict.get('organization_id'))
+        #helpers.redirect_to('organizations.index',
+                            #id="newrequest", membership_id=member['id'])
     except dict_fns.DataError:
         toolkit.abort(400, _(u'Integrity Error'))
     except logic.NotFound:
@@ -76,20 +83,30 @@ def _save_new(context):
         error_summary = e.error_summary
         return self.new(errors, error_summary)
 
-def show(self, mrequest_id):
+def show(mrequest_id, error, error_summary):
     """" Shows a single member request. To be used by admins in case they want to modify granted role or accept via e-mail """
     context = {'user': c.user or c.author}
     try:
+        #action get
         membershipdto = toolkit.get_action('member_request_show')(
             context, {'mrequest_id': mrequest_id})
+        
+        print("\n\tAFTER MAIL \n")
+        #session 
         member_user = model.Session.query(
             model.User).get(membershipdto['user_id'])
+    
         context = {'user': member_user.name}
+        
         roles = self._get_available_roles(
             context, membershipdto['organization_name'])
+        
         extra_vars = {"membership": membershipdto,
                         "member_user": member_user, "roles": roles}
+        
+        print("\n\t BUILD SHOW VIEW")
         return toolkit.render('request/show.html', extra_vars=extra_vars)
+    
     except logic.NotFound:
         toolkit.abort(404, self.request_not_found_message)
     except logic.NotAuthorized:

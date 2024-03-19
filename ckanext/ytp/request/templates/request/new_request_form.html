@@ -21,6 +21,7 @@
     </div>
     {% set format_attrs = {'data-module': 'autocomplete'} %}
     {{ form.select('role', label=_('Role'), options=c.roles, selected=c.user_role, error='', attrs=format_attrs) }}
+    <input type="hidden" name="form_save_new_request" value="form_save_request"/>
   {% endblock %}
 
   <div class="form-actions">
