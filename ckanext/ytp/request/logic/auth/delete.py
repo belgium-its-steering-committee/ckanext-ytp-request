@@ -5,6 +5,7 @@ log = logging.getLogger(__name__)
 
 
 def _member_common_access_check(context, data_dict, status):
+
     if not c.userobj:
         return {'success': False}
 
@@ -13,10 +14,10 @@ def _member_common_access_check(context, data_dict, status):
         return {'success': False}
 
     member = get_user_member(organization_id, status)
-
+    
     if not member:
         return {'success': False}
-
+    
     if member.table_name == 'user' and member.table_id == c.userobj.id and member.state == status:
         return {'success': True}
     return {'success': False}

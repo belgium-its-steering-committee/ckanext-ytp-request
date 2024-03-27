@@ -1,19 +1,21 @@
 import logging
+from ckan.plugins import toolkit
+
 
 from ckan import authz, model
 
 log = logging.getLogger(__name__)
 
 
-def member_request_approve(context, data_dict):
-    return _check_admin_access(context, data_dict)
+def member_request_approve(data_dict):
+    return _check_admin_access(data_dict)
 
 
-def member_request_reject(context, data_dict):
-    return _check_admin_access(context, data_dict)
+def member_request_reject(data_dict):
+    return _check_admin_access(data_dict)
 
 
-def _check_admin_access(context, data_dict):
+def _check_admin_access(data_dict):
     """
     Approve access check
     :param context: context object

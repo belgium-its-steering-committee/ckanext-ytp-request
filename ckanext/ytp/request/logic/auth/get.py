@@ -1,6 +1,7 @@
 import logging
 from ckan import model, authz
 from ckan.common import c, _
+from ckan.plugins import toolkit
 
 log = logging.getLogger(__name__)
 
@@ -41,7 +42,8 @@ def member_requests_mylist(context, data_dict):
     """
     # TODO: Sysadmins dont have this functionality since it is pointless. Make
     # it at the logical level
-    return _only_registered_user()
+    # tip:: toolkit.current_user[sysadmin]
+    return _only_registered_user(context, data_dict)
 
 
 def member_requests_list(context, data_dict):
@@ -52,10 +54,11 @@ def member_requests_list(context, data_dict):
     :type context: dict
     :type data_dict: dict
     """
-    return _only_registered_user()
+    return _only_registered_user(context, data_dict)
 
 
-def _only_registered_user():
-    if not authz.auth_is_loggedin_user():
+def _only_registered_user(context, data_dict):
+    if not toolkit.current_user:
+    #if not authz.auth_is_loggedin_user():
         return {'success': False, 'msg': _('User is not logged in')}
     return {'success': True}

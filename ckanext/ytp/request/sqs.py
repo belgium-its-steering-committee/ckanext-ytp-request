@@ -12,7 +12,6 @@ log = logging.getLogger(__name__)
 
 def send_sqs_message(user, subject, message):
     # Create SQS client
-    print('\n\t sending sqs messages')
     sqs = boto3.client('sqs',
                        region_name=config.get('ckan.sqs.region_id'),
                        aws_access_key_id=config.get('ckan.sqs.access_key'),
@@ -44,4 +43,4 @@ def send_sqs_message(user, subject, message):
             MessageBody=json.dumps(message_body)
         )
 
-        print('\t\n RESPONSE SQS::',response['MessageId'],'\n')
+        print('\t\n RESPONSE SQS_ID::',response['MessageId'],'\n')

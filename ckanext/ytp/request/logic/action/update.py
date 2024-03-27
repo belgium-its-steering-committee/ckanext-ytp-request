@@ -3,6 +3,7 @@ from ckanext.ytp.request.model import MemberRequest
 from ckan.common import c
 from ckanext.ytp.request.helper import get_default_locale
 from ckanext.ytp.request.mail import mail_process_status
+import ckan.lib.helpers as helpers
 
 import logging
 import datetime
@@ -16,7 +17,8 @@ def member_request_reject(context, data_dict):
     Difference is that this action should be logged and showed to the user. If a user cancels herself her own request
     can be safely deleted
     """
-    logic.check_access('member_request_reject', context, data_dict)
+    #helpers.check_access('member_request_reject', context, data_dict)
+    helpers.check_access('member_request_reject', data_dict)
     _process(context, 'reject', data_dict)
 
 
@@ -24,7 +26,8 @@ def member_request_approve(context, data_dict):
     """
     Approve request (from admin or group editor). Member request must be provided since we need both organization/user
     """
-    logic.check_access('member_request_approve', context, data_dict)
+    #helpers.check_access('member_request_approve', context, data_dict)
+    helpers.check_access('member_request_approve', data_dict)
     _process(context, 'approve', data_dict)
 
 
@@ -64,8 +67,8 @@ def _process(context, action, data_dict):
     member.state = state
     if role:
         member.capacity = role
-    revision = model.repo.new_revision()
-    revision.author = user
+    #revision = model.repo.new_revision()
+    #revision.author = user
 
     if approve:
         message = 'Member request approved by admin.'
@@ -73,17 +76,17 @@ def _process(context, action, data_dict):
         message = 'Member request rejected by log.'
     if role:
         message = message + " Role changed"
-    revision.message = message
+    #revision.message = message
 
     # TODO: Move this query to a helper method since it is widely used
     # Fetch the newest member_request associated to this membership (sort by
     # last modified field)
     member_request = model.Session.query(MemberRequest).filter(
-        MemberRequest.membership_id == member.id).order_by('request_date desc').limit(1).first()
+        MemberRequest.membership_id == member.id).order_by(MemberRequest.request_date.desc()).limit(1).first()
 
     # BFW: In case of pending state overwrite it since it is no final state
     member_request.status = request_status
-    member_request.handling_date = datetime.datetime.utcnow()
+    member_request.handling_date = datetime.datetime.now(datetime.timezone.utc)
     member_request.handled_by = c.userobj.name
     member_request.message = message
     if role:

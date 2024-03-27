@@ -5,6 +5,7 @@ from ckan.lib.dictization import model_dictize
 from ckan.common import c
 from sqlalchemy.sql import func
 from ckanext.ytp.request.helper import get_safe_locale
+from ckan.plugins import toolkit
 
 import logging
 
@@ -42,7 +43,7 @@ def member_request_membership_cancel(context, data_dict):
     :type context: dict
     :type data_dict: dict
     """
-    logic.check_access('member_request_membership_cancel', context, data_dict)
+    toolkit.check_access('member_request_membership_cancel', context, data_dict)
 
     organization_id = data_dict.get("organization_id")
     query = model.Session.query(model.Member).filter(model.Member.state == 'active') \
@@ -75,7 +76,7 @@ def _process_request(context, organization_id, member, status):
     # Fetch the newest member_request associated to this membership (sort by
     # last modified field)
     member_request = model.Session.query(MemberRequest).filter(
-        MemberRequest.membership_id == member.id).order_by('request_date desc').limit(1).first()
+        MemberRequest.membership_id == member.id).order_by(MemberRequest.request_date.desc()).limit(1).first()
 
     # BFW: Create a new instance every time membership status is changed
     message = u'MemberRequest cancelled by own user'
@@ -89,9 +90,10 @@ def _process_request(context, organization_id, member, status):
                                    language=locale, handling_date=func.now(), handled_by=c.userobj.name, message=message)
     model.Session.add(member_request)
 
-    revision = model.repo.new_revision()
-    revision.author = user
-    revision.message = u'Member request deleted by user'
+    #FIXME
+    #revision = model.repo.new_revision()
+    #revision.author = user
+    #revision.message = u'Member request deleted by user'
 
     member.save()
     model.repo.commit()

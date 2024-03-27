@@ -55,6 +55,7 @@ Best regards
 
 def mail_new_membership_request(locale, admin, group_name, url, user_name, user_email):
     current_locale = get_lang()
+    #TODO
     #if locale == 'en':
         #_reset_lang()
     #else:
@@ -80,6 +81,7 @@ def mail_new_membership_request(locale, admin, group_name, url, user_name, user_
 
 def mail_process_status(locale, member_user, approve, group_name, capacity):
     current_locale = get_lang()
+    #TODO
     #if locale == 'en':
         #reset_lang()
     #else:
@@ -110,7 +112,6 @@ def mail_process_status(locale, member_user, approve, group_name, capacity):
 
 
 def _mail_user(user, subject, message, context="User"):
-    print('\t\n trying to mail the user')
     if (user.email is None) or not len(user.email):
         log.warn("{0} without email {1} ({2}), notification not send to this {3}".format(
             context,
@@ -119,9 +120,11 @@ def _mail_user(user, subject, message, context="User"):
             context.lower()
         ))
     else:
+        #TODO
         send_sqs_message(user, subject, message)
         mail_user(user, subject, message)
 
+#TODO
 #def _reset_lang():
     #try:
         #i18n.set_lang(None)

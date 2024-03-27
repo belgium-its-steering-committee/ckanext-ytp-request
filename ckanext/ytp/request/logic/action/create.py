@@ -76,7 +76,6 @@ def _create_member_request(context, data_dict):
     else:
         member = model.Member(table_name="user", table_id=userobj.id,
                               group_id=group.id, capacity=role, state='pending')
-        #TODO member is created  but group_id is None
 
     
     #TODO: Is there a way to get language associated to all admins. User table there is nothing as such stored
@@ -104,24 +103,17 @@ def _create_member_request(context, data_dict):
     url = toolkit.config.get('ckan.site_url', "")
     if url:
         url = helpers.url_for('ytp_request.show',mrequest_id=member.id, _external = True )
-    
-    print("\n\t IN NEW CREATE_MEMBER_REQUEST")
-    print("\n LOCALE::", locale)
-    print('\n\ admins', _get_ckan_admins())
-    print('\n displayName:: ', group.display_name)
-    print('\n ULR::', url)
-    print('\n User.Display_name::', userobj.display_name)
-    print('\n userobj.email::', userobj.email)
 
     # Locale should be admin locale since mail is sent to admins
-    #TODO
     if role == 'admin':
         for admin in _get_ckan_admins():
+            #FIXME
             if admin.display_name == "Felten Vanballenberge SysAdmin":
                 mail_new_membership_request(
                     locale, admin, group.display_name, url, userobj.display_name, userobj.email)
     else:
         for admin in _get_organization_admins(group.id):
+            #FIXME
             if admin.display_name == "Felten Vanballenberge SysAdmin":
                 mail_new_membership_request(
                     locale, admin, group.display_name, url, userobj.display_name, userobj.email)
@@ -142,5 +134,4 @@ def _get_organization_admins(group_id):
 
 def _get_ckan_admins():
     admins = set(model.Session.query(model.User).filter(model.User.sysadmin == True))  # noqa
-
     return admins
