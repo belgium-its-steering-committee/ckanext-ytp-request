@@ -3,5 +3,5 @@
 
 {% block content_primary_nav %}
   {{ super() }}
-    {{ h.build_nav_icon('ytp_request.list', _('Member requests'), organization_id=organization.id) }}
+    {{ h.build_nav_icon('ytp_request.list', _('Member requests'), selected_organization=organization.id) }}
 {% endblock %}

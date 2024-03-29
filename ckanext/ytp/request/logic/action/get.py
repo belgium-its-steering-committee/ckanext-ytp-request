@@ -52,7 +52,6 @@ def member_requests_mylist(context, data_dict):
     :type data_dict: dict
     """
     logic.check_access('member_requests_mylist', context, data_dict)
-
     user = context.get('user', None)
     if authz.is_sysadmin(user):
         raise logic.ValidationError({}, {_("Role"): _(
@@ -75,26 +74,28 @@ def member_requests_list(context, data_dict):
     :type data_dict: dict
     """
     logic.check_access('member_requests_list', context, data_dict)
-
+    
     user = context.get('user', None)
     user_object = model.User.get(user)
     is_sysadmin = authz.is_sysadmin(user)
 
     # ALL members with pending state only
-    query = model.Session.query(model.Member).filter(
-        model.Member.table_name == 'user').filter(model.Member.state == 'pending')
+    query = model.Session.query(model.Member)\
+        .filter(model.Member.table_name == 'user').filter(model.Member.state == 'pending')
 
     if not is_sysadmin:
-        admin_in_groups = model.Session.query(model.Member).filter(model.Member.state == 'active')\
+        admin_in_groups = model.Session.query(model.Member)\
+            .filter(model.Member.state == 'active')\
             .filter(model.Member.table_name == 'user') \
-            .filter(model.Member.capacity == 'admin').filter(model.Member.table_id == user_object.id)
+            .filter(model.Member.capacity == 'admin')\
+            .filter(model.Member.table_id == user_object.id)
 
         if admin_in_groups.count() <= 0:
             return []
         # members requests for this organization
-        query = query.filter(model.Member.group_id.in_(
-            admin_in_groups.values(model.Member.group_id)))
-
+        admin_group_ids = [admin.group_id for admin in admin_in_groups]
+        query = query\
+            .filter(model.Member.group_id.in_(admin_group_ids))
     group = data_dict.get('group', None)
     if group:
         group_object = model.Group.get(group)
@@ -102,7 +103,6 @@ def member_requests_list(context, data_dict):
             query = query.filter(model.Member.group_id == group_object.id)
 
     members = query.all()
-
     return _member_list_dictize(members, context)
 
 

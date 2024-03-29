@@ -59,12 +59,13 @@ def _save_new(context, data_dict, errors, error_summary):
         #data_dict = logic.clean_dict(dict_fns.unflatten(
             #logic.tuplize_dict(logic.parse_params(toolkit.request.url))))
         #data_dict['group'] = data_dict['organization']
+        
         #create member request action - returns unique memberId
         #member = toolkit.get_action('member_request_create')(context, data_dict)
         
         #member = toolkit.get_action(
             #'member_request_create')(context, data_dict)
-        
+        print("\n\t SAVE NEW- data_dict::", data_dict, "\n")
         #redirect to requested organization-page
         data_dict['group'] = data_dict['organization_id']
         #Start email request proces
@@ -87,6 +88,7 @@ def _save_new(context, data_dict, errors, error_summary):
 def show(mrequest_id, error, error_summary):
     """" Shows a single member request. To be used by admins in case they want to modify granted role or accept via e-mail """
     context = {'user': c.user or c.author}
+    print("\n\t IN SHOW")
     try:
         #action get
         membershipdto = toolkit.get_action('member_request_show')(
@@ -99,8 +101,9 @@ def show(mrequest_id, error, error_summary):
     
         context = {'user': member_user.name}
         
-        roles = self._get_available_roles(
-            context, membershipdto['organization_name'])
+        roles=['admin','editor']
+        #roles = self._get_available_roles(
+            #context, membershipdto['organization_name'])
         
         extra_vars = {"membership": membershipdto,
                         "member_user": member_user, "roles": roles}
@@ -115,7 +118,6 @@ def show(mrequest_id, error, error_summary):
 def mylist(id, error, error_summary):
     """" Lists own members requests (possibility to cancel and view current status)"""
     context = {'user': c.user or c.author}
-    #id = toolkit.request.params.get('id', None)
     id = (id, None)
     try:
         my_requests = toolkit.get_action(
@@ -128,17 +130,13 @@ def mylist(id, error, error_summary):
     except logic.NotAuthorized:
         toolkit.abort(401, error.not_auth_message)
 
-def list(organization_id, errors, error_summary):
+def list(errors, error_summary):
     """ Lists member requests to be approved by admins"""
-    #FIXME List function gets action (apporved/rejected/..) and organization_id mixed passed, split
     context = {'user': c.user or c.author}
-    id = (organization_id, None)
-    #selected_organization = toolkit.request.params.get('selected_organization', None)
-    selected_organization = None
-    #selected_organization = organization_id
+    id = toolkit.request.args.get('id', None)
+    selected_organization = toolkit.request.args.get('selected_organization', None)
     
     if selected_organization:
-        print("\n\tNOT HERE BECAUSE ITS NOT AN ORG IT IS A MREQUEST_ID::", organization_id,"\n\t")
         organization = toolkit.get_action('organization_show')(context, {'id': selected_organization})
         member_requests = toolkit.get_action('member_requests_list')(context, {'group': selected_organization})
     else:
@@ -147,7 +145,6 @@ def list(organization_id, errors, error_summary):
     try:
         message = None
         if id:
-            print("\n\tHERE BECAUSE IT IS A STATE::", organization_id,"\n\t")
             message = _("Member request processed successfully")
         log.debug("%s", message)
         extra_vars = {
@@ -160,12 +157,10 @@ def list(organization_id, errors, error_summary):
 def cancel(organization_id, errors, error_summary):
     """ Logged in user can cancel pending requests not approved yet by admins/editors"""
     context = {'user': c.user or c.author}
-    #organization_id = toolkit.request.params.get('organization_id', None)
     try:
         toolkit.get_action('member_request_cancel')(
             context, {"organization_id": organization_id})
         id = 'cancel'
-        #helpers.redirect_to('member_requests_mylist', id=id)
         return toolkit.redirect_to('ytp_request.mylist', id=id)
     except logic.NotAuthorized:
         toolkit.abort(401, errors.not_auth_message)
@@ -174,7 +169,7 @@ def cancel(organization_id, errors, error_summary):
 
 def reject(mrequest_id,errors, error_summary):
     """ Controller to reject member request (only admins or group editors can do that """
-    return _processbyadmin(mrequest_id, False)
+    return _processbyadmin(mrequest_id, False, errors, error_summary)
 
 def approve(mrequest_id,errors, error_summary):
     """ Controller to approve member request (only admins or group editors can do that) """
@@ -209,7 +204,7 @@ def _processbyadmin(mrequest_id, approve, errors, error_summary):
         else:
             toolkit.get_action('member_request_reject')(context, data_dict)
             id = 'rejected'
-        return toolkit.redirect_to("ytp_request.list", organization_id=id)
+        return toolkit.redirect_to("ytp_request.list", id=id)
     except logic.NotAuthorized:
         toolkit.abort(401, errors.not_auth_message)
     except logic.NotFound:

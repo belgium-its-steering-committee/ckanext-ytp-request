@@ -26,9 +26,7 @@ def member_request_create(context, data_dict):
     :type data_dict: dict
     """
     member = _create_member_request(context, data_dict)
-    #TODO hier break
-    return member
-    #return model_dictize.member_dictize(member, context)
+    return model_dictize.member_dictize(member, context)
 
 
 def _create_member_request(context, data_dict):

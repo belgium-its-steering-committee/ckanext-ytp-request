@@ -6,6 +6,7 @@ log = logging.getLogger(__name__)
 
 def _member_common_access_check(context, data_dict, status):
 
+    print("DELETE AUTH")
     if not c.userobj:
         return {'success': False}
 
@@ -18,6 +19,7 @@ def _member_common_access_check(context, data_dict, status):
     if not member:
         return {'success': False}
     
+    print("\n\t MEMBER", member, "\n")
     if member.table_name == 'user' and member.table_id == c.userobj.id and member.state == status:
         return {'success': True}
     return {'success': False}

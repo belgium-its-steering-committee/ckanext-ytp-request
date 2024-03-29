@@ -3,7 +3,7 @@
 {% block subtitle %}{{ _('Organization membership request') }}{% endblock %}
 
 {% block secondary_content %}
-{% resource  "request_js/request.js" %}
+{% asset  "request_js/request.js" %}
 
   <section class="module module-narrow">
     <h2 class="module-heading"><i class="icon-large icon-info-sign"></i> {{ _('Organization membership request') }}</h2>
@@ -23,19 +23,11 @@
           <tbody>
               <tr>
                   <th>{% trans %}Organization{% endtrans %}</th>
-                  <td><a href="{{ h.url('organization_read', id=membership.organization_name) }}">({{ membership.organization_name }})</a></td>
+                  <td><a href="{{ h.url_for('organization_read', id=membership.organization_name) }}">{{ membership.organization_name }}</a></td>
               </tr>
               <tr>
                   <th>{% trans %}User{% endtrans %}</th>
-                  <td>
-                      <a href="{{ h.url_for('user_datasets', controller='user', id=member_user.name) }}">
-                        {% if member_user.fullname %}
-                        {{ member_user.fullname }} ({{ member_user.name }})
-                        {% else %}
-                        {{ member_user.name }}
-                        {% endif %}
-                      </a>
-                  </td>
+                  <td>{{ h.linked_user(member_user.name)}}</td>
               </tr>
               <tr>
                 <th>{% trans %}Request date{% endtrans %}</th>
