@@ -1,7 +1,6 @@
-from ckanext.ytp.request.helper import get_user_member
-from ckan import authz
+from ckan.plugins import toolkit #type:ignore
+
 import logging
-from ckan.common import _
 log = logging.getLogger(__name__)
 
 
@@ -9,15 +8,13 @@ def member_request_create(context, data_dict):
     """
     Only allow to logged in users
     """
-    #TODO check login functie!!!
-    context_user = context.get('__auth_user_obj_checked',None)
-    if not context_user:
-        return {'success': False, 'msg': _('User is not logged in')}
+    if not toolkit.current_user:
+        return {'success': False, 'msg': toolkit._(u'User is not logged in')}
 
     organization_id = None if not data_dict else data_dict.get(
         'organization_id', None)
     if organization_id:
-        member = get_user_member(organization_id)
+        member = toolkit.h.get_user_member(organization_id)
         if member:
-            return {'success': False, 'msg': _('The user has already a pending request or an active membership')}
+            return {'success': False, 'msg': toolkit._(u'The user has already a pending request or an active membership')}
     return {'success': True}

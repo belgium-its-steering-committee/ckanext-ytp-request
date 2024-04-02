@@ -1,7 +1,7 @@
 import logging
 from ckan import model, authz
-from ckan.common import c, _
-from ckan.plugins import toolkit
+from ckan.common import c
+from ckan.plugins import toolkit #type:ignore
 
 log = logging.getLogger(__name__)
 
@@ -14,9 +14,11 @@ def member_request(context, data_dict):
     :type context: dict
     :type data_dict: dict
     """
+    #FIXME Dont use C or G
     if not c.userobj:
         return {'success': False}
 
+    #FIXME Dont use C or G
     if authz.is_sysadmin(c.user):
         return {'success': True}
 
@@ -27,8 +29,13 @@ def member_request(context, data_dict):
     if membership.table_name != 'user':
         return {'success': False}
 
-    query = model.Session.query(model.Member).filter(model.Member.state == 'active').filter(model.Member.table_name == 'user') \
-        .filter(model.Member.capacity == 'admin').filter(model.Member.table_id == c.userobj.id).filter(model.Member.group_id == membership.group_id)
+    #FIXME Dont use C or g
+    query = model.Session.query(model.Member)\
+        .filter(model.Member.state == 'active')\
+        .filter(model.Member.table_name == 'user')\
+        .filter(model.Member.capacity == 'admin')\
+        .filter(model.Member.table_id == c.userobj.id)\
+        .filter(model.Member.group_id == membership.group_id)
     return {'success': query.count() > 0}
 
 
@@ -59,6 +66,5 @@ def member_requests_list(context, data_dict):
 
 def _only_registered_user(context, data_dict):
     if not toolkit.current_user:
-    #if not authz.auth_is_loggedin_user():
-        return {'success': False, 'msg': _('User is not logged in')}
+        return {'success': False, 'msg': toolkit._(u'User is not logged in')}
     return {'success': True}

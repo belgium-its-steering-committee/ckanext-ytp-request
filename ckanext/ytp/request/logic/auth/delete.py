@@ -1,5 +1,7 @@
+from ckan.plugins import toolkit #type:ignore
+#FIXME dont use C or g
 from ckan.common import c
-from ckanext.ytp.request.helper import get_user_member
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -13,11 +15,12 @@ def _member_common_access_check(context, data_dict, status):
     if not organization_id:
         return {'success': False}
 
-    member = get_user_member(organization_id, status)
+    member = toolkit.h.get_user_member(organization_id, status)
     
     if not member:
         return {'success': False}
     
+    #FIXME dont use C or G
     if member.table_name == 'user' and member.table_id == c.userobj.id and member.state == status:
         return {'success': True}
     return {'success': False}

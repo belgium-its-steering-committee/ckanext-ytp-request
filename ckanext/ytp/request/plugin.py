@@ -18,7 +18,7 @@ class YtpRequestPlugin(plugins.SingletonPlugin, DefaultTranslation):
     implements(plugins.IAuthFunctions, inherit=True)
     implements(plugins.IClick)
     implements(plugins.IBlueprint)
-    implements(plugins.ITemplatehelpers)
+    implements(plugins.ITemplateHelpers)
     implements(plugins.ITranslation)
 
     # IConfigurer #
