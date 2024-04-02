@@ -21,7 +21,7 @@ setup(
         # -*- Extra requirements: -*-
     ],
     message_extractors={
-        'ckanext/ytp/request': [
+        'ckanext/ytp/request/i18n': [
             ('**.py', 'python', None),
             ('templates/**.html', 'ckan', None)
         ]

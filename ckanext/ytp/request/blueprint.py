@@ -1,32 +1,32 @@
-from flask import Blueprint
-import ckanext.ytp.request.utils as utils
+from flask import Blueprint #type:ignore
+from ckanext.ytp.request import utils
 
 ytp_request = Blueprint('ytp_request', __name__)
 
 
-def new(organization_id, errors=None, error_summary=None):
-    return utils.new(organization_id, errors, error_summary)
+def new(organization_id):
+    return utils.new(organization_id)
 
-def mylist(id, errors=None, error_summary=None):
-    return utils.mylist(id, errors, error_summary)
+def mylist(id):
+    return utils.mylist(id)
 
-def list(errors=None, error_summary=None):
-    return utils.list(errors, error_summary)
+def list():
+    return utils.list()
 
-def reject(mrequest_id, errors=None, error_summary=None):
-    return utils.reject(mrequest_id, errors, error_summary)
+def reject(mrequest_id):
+    return utils.reject(mrequest_id)
 
-def approve(mrequest_id, errors=None, error_summary=None):
-    return utils.approve(mrequest_id, errors, error_summary)
+def approve(mrequest_id):
+    return utils.approve(mrequest_id)
 
-def cancel(organization_id, errors=None, error_summary=None):
-    return utils.cancel(organization_id, errors, error_summary)
+def cancel(organization_id):
+    return utils.cancel(organization_id)
 
-def membership_cancel(organization_id, errors=None, error_summary=None):
-    return utils.membership_cancel(organization_id, errors, error_summary)
+def membership_cancel(organization_id):
+    return utils.membership_cancel(organization_id)
 
-def show(mrequest_id, errors=None, error_summary=None):
-    return utils.show(mrequest_id, errors, error_summary)
+def show(mrequest_id):
+    return utils.show(mrequest_id)
 
 
 

@@ -1,33 +1,31 @@
-import ckan.plugins as plugins
-from ckan.plugins import implements, toolkit
-#TODO refactor logic.action
+from ckan import plugins
+from ckan.plugins import implements, toolkit #type:ignore
+from ckan.lib.plugins import DefaultTranslation #type:ignore
+
 from ckanext.ytp.request.logic.action import get, create, update, delete
 from ckanext.ytp.request.logic.auth import get as auth_get, create as auth_create, update as auth_update, delete as auth_delete
-                                            
+from ckanext.ytp.request.cli import get_commands
 from ckanext.ytp.request import blueprint
-import logging
+from ckanext.ytp.request import helper
 
+import logging
 log = logging.getLogger(__name__)
 
 
-class YtpRequestPlugin(plugins.SingletonPlugin):
-    '''
-    implements(plugins.IRoutes, inherit=True)
-    '''
-    implements(plugins.IBlueprint)
+class YtpRequestPlugin(plugins.SingletonPlugin, DefaultTranslation):
     implements(plugins.IConfigurer, inherit=True)
     implements(plugins.IActions, inherit=True)
     implements(plugins.IAuthFunctions, inherit=True)
+    implements(plugins.IClick)
+    implements(plugins.IBlueprint)
+    implements(plugins.ITemplatehelpers)
+    implements(plugins.ITranslation)
 
     # IConfigurer #
     def update_config(self, config):
         toolkit.add_template_directory(config, 'templates')
         toolkit.add_public_directory(config, 'public')
         toolkit.add_resource('public/javascript/', 'request_js')
-
-    # bleuprint
-    def get_blueprint(self):
-        return [blueprint.ytp_request]
 
     # IActions
     def get_actions(self):
@@ -55,35 +53,21 @@ class YtpRequestPlugin(plugins.SingletonPlugin):
             "member_requests_mylist": auth_get.member_requests_mylist,
             "member_request_show": auth_get.member_request
         }
-
-    '''
-    # IRoutes #
-    def before_map(self, m):
-        """ CKAN autocomplete discards vocabulary_id from request. Create own api for this. """
-        controller = 'ckanext.ytp.request.controller:YtpRequestController'
-        //
-        m.connect('member_request_create', '/member-request/new',
-                  action='new', controller=controller)
-        //
-        m.connect('member_requests_mylist', '/member-request/mylist',
-                  action='mylist', controller=controller)
-        //
-        m.connect('member_requests_list', '/member-request/list',
-                  action='list', controller=controller)
-        //
-        m.connect('member_request_reject',
-                  '/member-request/reject/{mrequest_id}', action='reject', controller=controller)
-        //
-        m.connect('member_request_approve',
-                  '/member-request/approve/{mrequest_id}', action='approve', controller=controller)
-        //
-        m.connect('member_request_cancel', '/member-request/cancel',
-                  action='cancel', controller=controller)
-        //
-        m.connect('member_request_membership_cancel',
-                  '/member-request/membership-cancel/{organization_id}', action='membership_cancel', controller=controller),
-        //
-        m.connect('member_request_show',
-                  '/member-request/{mrequest_id}', action='show', controller=controller)
-        return m
-    '''
+    
+    #Bleuprint
+    def get_blueprint(self):
+        return [blueprint.ytp_request]
+    
+    #IHelpers
+    def get_helpers(self):
+        return {
+            "get_user_member": helper.get_user_member,
+            "get_organization_admins": helper.get_organization_admins,
+            "get_ckan_admins": helper.get_ckan_admins,
+            "get_default_locale": helper.get_default_locale,
+            "get_safe_locale": helper.get_safe_locale
+        }
+    
+    #IClick
+    def get_commands(self):
+        return get_commands()

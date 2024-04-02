@@ -1,201 +1,214 @@
 from ckan import logic, model
-from ckan.lib import helpers
-from ckan.plugins import toolkit
-from ckan.common import c, _
-import ckan.lib.navl.dictization_functions as dict_fns
-import logging
+from ckan.plugins import toolkit #type:ignore
+#FIXME Avoid use c or g
+from ckan.common import c #type:ignore
 
+import logging
 log = logging.getLogger(__name__)
 
 
-not_auth_message = _('Unauthorized')
-request_not_found_message = _('Request not found')
+not_auth_message = toolkit._(u'Unauthorized')
+request_not_found_message = toolkit._(u'Membership Request has already been approved, or does not exist.')
+not_found_message= toolkit._(u'Item not found')
 
-def _list_organizations():
-    data_dict = {}
-    context = {}
-    data_dict['limit']= 1000
-    data_dict['all_fields'] = True
-    data_dict['include_datset_count'] = False
-    data_dict['include_extras'] = False
-    data_dict['include_tags']= False
-    data_dict['include_users'] = False
-    # TODO: Filter our organizations where the user is already a member or
-    # Set in config: ckan.group_and_organization_list_max to...
-    # has a pending request
-    #print("\n\t",toolkit.get_action('organization_list')(context, data_dict),"\n" )
-    return toolkit.get_action('organization_list')(context, data_dict)
 
-def new(organization_id, errors=None, error_summary=None):
+def new(organization_id):
+    #FIXME: Using c
     context = {'user': c.user or c.author,
                'save': toolkit.request.form.get('form_save_new_request'),
                 }
+    
     data_dict= {'organization_id': organization_id,
                 'role': toolkit.request.form.get('role')
                 }
     try:
         toolkit.check_access('member_request_create', context)
     except toolkit.NotAuthorized:
-        toolkit.abort(401, errors.not_auth_message)
+        toolkit.abort(401, detail=not_auth_message)
 
     organizations = _list_organizations()
 
-    if context.get('save') and not errors:
-        return _save_new(context, data_dict, errors, error_summary)
+    if context.get('save'):
+        return _save_new(context, data_dict)
 
-    # FIXME: Don't send as request parameter selected organization. kinda
-    # weird
     selected_organization = str(organization_id)
-    extra_vars = {'selected_organization': selected_organization, 'organizations': organizations,
-                    'errors': errors or {}, 'error_summary': error_summary or {}}
+    
+    extra_vars = {'selected_organization': selected_organization, 'organizations': organizations}
+    
+    #FIXME: Don't use C (or g)
     c.roles = _get_available_roles(context, selected_organization)
     c.user_role = 'admin'
     c.form = toolkit.render("request/new_request_form.html", extra_vars=extra_vars)
+    
     return toolkit.render("request/new.html")
-
-def _save_new(context, data_dict, errors, error_summary):
-    try:
-        #TODO - delete junk
-        #data_dict = logic.clean_dict(dict_fns.unflatten(
-            #logic.tuplize_dict(logic.parse_params(toolkit.request.url))))
-        #data_dict['group'] = data_dict['organization']
         
-        #create member request action - returns unique memberId
-        #member = toolkit.get_action('member_request_create')(context, data_dict)
-        
-        #member = toolkit.get_action(
-            #'member_request_create')(context, data_dict)
-        print("\n\t SAVE NEW- data_dict::", data_dict, "\n")
-        #redirect to requested organization-page
-        data_dict['group'] = data_dict['organization_id']
-        #Start email request proces
-        toolkit.get_action("member_request_create")(context, data_dict)
-        #Return view to requested organization
-        return helpers.redirect_to('organization.read',id=data_dict.get('organization_id'))
-        #helpers.redirect_to('organizations.index',
-                            #id="newrequest", membership_id=member['id'])
-    except dict_fns.DataError:
-        toolkit.abort(400, _(u'Integrity Error'))
-    except logic.NotFound:
-        toolkit.abort(404, _('Item not found'))
-    except logic.NotAuthorized:
-        toolkit.abort(405, errors.not_auth_message)
-    except logic.ValidationError as e:
-        errors = e.error_dict if e.error_dict else True
-        error_summary = e.error_summary
-        return (errors, error_summary)
-
-def show(mrequest_id, error, error_summary):
+def show(mrequest_id):
     """" Shows a single member request. To be used by admins in case they want to modify granted role or accept via e-mail """
+    #FIXME: dont use c or g
     context = {'user': c.user or c.author}
-    print("\n\t IN SHOW")
     try:
-        #action get
         membershipdto = toolkit.get_action('member_request_show')(
             context, {'mrequest_id': mrequest_id})
         
-        print("\n\tAFTER MAIL \n")
         #session 
         member_user = model.Session.query(
             model.User).get(membershipdto['user_id'])
-    
         context = {'user': member_user.name}
         
-        roles=['admin','editor']
-        #roles = self._get_available_roles(
-            #context, membershipdto['organization_name'])
+        #Backup roles::
+        #roles=['admin','editor']
+        roles = _get_available_roles(
+            context, membershipdto['organization_name'])
         
         extra_vars = {"membership": membershipdto,
                         "member_user": member_user, "roles": roles}
         
         return toolkit.render('request/show.html', extra_vars=extra_vars)
     
-    except logic.NotFound:
-        toolkit.abort(404, error.request_not_found_message)
+    except toolkit.ObjectNotFound:
+        toolkit.abort(404, detail=request_not_found_message)
     except logic.NotAuthorized:
-        toolkit.abort(401, error.not_auth_message)
+        toolkit.abort(401, detail=not_auth_message)
 
-def mylist(id, error, error_summary):
+def mylist(id):
     """" Lists own members requests (possibility to cancel and view current status)"""
+    
+    #FIXME: dont use c or g
     context = {'user': c.user or c.author}
     id = (id, None)
+    message = None
+    
     try:
-        my_requests = toolkit.get_action(
-            'member_requests_mylist')(context, {})
-        message = None
+        my_requests = toolkit.get_action('member_requests_mylist')(
+            context, {})        
         if id:
-            message = _("Member request processed successfully")
+            message = toolkit._("Member request processed successfully")
         extra_vars = {'my_requests': my_requests, 'message': message}
+        
         return toolkit.render('request/mylist.html', extra_vars=extra_vars)
-    except logic.NotAuthorized:
-        toolkit.abort(401, error.not_auth_message)
+    
+    except toolkit.NotAuthorized:
+        toolkit.abort(401, detail=not_auth_message)
 
-def list(errors, error_summary):
+def list():
     """ Lists member requests to be approved by admins"""
+    
+    #FIXME dont use C or G
     context = {'user': c.user or c.author}
+    organization = None
+    member_requests = None
+    message = None
+    
+    #get params from url request
     id = toolkit.request.args.get('id', None)
     selected_organization = toolkit.request.args.get('selected_organization', None)
     
     if selected_organization:
         organization = toolkit.get_action('organization_show')(context, {'id': selected_organization})
         member_requests = toolkit.get_action('member_requests_list')(context, {'group': selected_organization})
-    else:
-        organization = None
-        member_requests = None
+    
     try:
-        message = None
         if id:
-            message = _("Member request processed successfully")
-        log.debug("%s", message)
+            message = toolkit._("Member request processed successfully")
+
         extra_vars = {
             'member_requests': member_requests, 'message': message, 'group_dict': organization,
             'group_type': 'organization'}
+        
         return toolkit.render('request/list.html', extra_vars=extra_vars)
-    except logic.NotAuthorized:
-        toolkit.abort(401, errors.not_auth_message)
+    
+    except toolkit.NotAuthorized:
+        toolkit.abort(401, detail=not_auth_message)
 
-def cancel(organization_id, errors, error_summary):
+def cancel(organization_id):
     """ Logged in user can cancel pending requests not approved yet by admins/editors"""
+    
+    #FIXME dont use c or g
     context = {'user': c.user or c.author}
+    
     try:
         toolkit.get_action('member_request_cancel')(
             context, {"organization_id": organization_id})
         id = 'cancel'
         return toolkit.redirect_to('ytp_request.mylist', id=id)
-    except logic.NotAuthorized:
-        toolkit.abort(401, errors.not_auth_message)
-    except logic.NotFound:
-        toolkit.abort(404, errors.lf.request_not_found_message)
+    
+    except toolkit.NotAuthorized:
+        toolkit.abort(401, detail=not_auth_message)
+    except toolkit.ObjectNotFound:
+        toolkit.abort(404, detail=request_not_found_message)
 
-def reject(mrequest_id,errors, error_summary):
+def reject(mrequest_id):
     """ Controller to reject member request (only admins or group editors can do that """
-    return _processbyadmin(mrequest_id, False, errors, error_summary)
+    return _processbyadmin(mrequest_id, False)
 
-def approve(mrequest_id,errors, error_summary):
+def approve(mrequest_id):
     """ Controller to approve member request (only admins or group editors can do that) """
-    return _processbyadmin(mrequest_id, True, errors, error_summary)
+    return _processbyadmin(mrequest_id, True)
 
-def membership_cancel(organization_id, errors, error_summary):
+def membership_cancel(organization_id):
     """ Logged in user can cancel already approved/existing memberships """
+    #FIXME dont use c or g
     context = {'user': c.user or c.author}
+    
     try:
         toolkit.get_action('member_request_membership_cancel')(
             context, {"organization_id": organization_id})
         id = 'cancel'
         return toolkit.redirect_to('ytp_request.mylist', id=id)
+    
     except logic.NotAuthorized:
-        toolkit.abort(401, errors.not_auth_message)
+        toolkit.abort(401, detail=not_auth_message)
+    
     except logic.NotFound:
-        toolkit.abort(404, errors.request_not_found_message)
+        toolkit.abort(404, detail=request_not_found_message)
+
+def _save_new(context, data_dict):
+    try:
+        data_dict['group'] = data_dict['organization_id']
+        #create member
+        toolkit.get_action("member_request_create")(context, data_dict)
+        #return to organization
+        return toolkit.h.redirect_to('organization.read',id=data_dict.get('organization_id'))
+    
+    #TODO dict_fns.dataError depriciated
+    #except dict_fns.DataError:
+        #toolkit.abort(400, message= _(u'Integrity Error'))
+    except toolkit.ObjectNotFound:
+        toolkit.abort(404, detail=not_found_message)
+    except toolkit.NotAuthorized:
+        toolkit.abort(401, detail = not_auth_message)
+    except toolkit.ValidationError as e:
+        #FIXME e-error handling
+        toolkit.abort(400, detail = str(e))
+
+def _list_organizations():
+    context = {}
+    data_dict = {}
+    data_dict['all_fields'] = True
+    data_dict['include_datset_count'] = False
+    data_dict['include_extras'] = False
+    data_dict['include_tags']= False
+    data_dict['include_users'] = False
+    #TODO: Filter organization_list
+    """
+    Filter out organizations where the user is already a member or has a pending request
+    """
+    try:
+        return toolkit.get_action('organization_list')(context, data_dict)
+    except toolkit.ObjectNotFound:
+        toolkit.abort(404, detail="No organization are found")
 
 def _get_available_roles(context, organization_id):
     data_dict = {'organization_id': organization_id}
     return toolkit.get_action('get_available_roles')(context, data_dict)
 
-def _processbyadmin(mrequest_id, approve, errors, error_summary):
+def _processbyadmin(mrequest_id, approve):
+    
+    #FIXME dont use c or g
     context = {'user': c.user or c.author}
     role = toolkit.request.params.get('role', None)
     data_dict = {"mrequest_id": mrequest_id, 'role': role}
+    
     try:
         if approve:
             toolkit.get_action('member_request_approve')(
@@ -205,9 +218,11 @@ def _processbyadmin(mrequest_id, approve, errors, error_summary):
             toolkit.get_action('member_request_reject')(context, data_dict)
             id = 'rejected'
         return toolkit.redirect_to("ytp_request.list", id=id)
-    except logic.NotAuthorized:
-        toolkit.abort(401, errors.not_auth_message)
-    except logic.NotFound:
-        toolkit.abort(404, errors.request_not_found_message)
-    except logic.ValidationError as e:
-        toolkit.abort(400, str(e))
+    
+    except toolkit.NotAuthorized:
+        toolkit.abort(401, detail=not_auth_message)
+    except toolkit.ObjectNotFound:
+        toolkit.abort(404, detail=request_not_found_message)
+    except toolkit.ValidationError as e:
+        #FIXME e-error handling
+        toolkit.abort(400, detail=str(e))

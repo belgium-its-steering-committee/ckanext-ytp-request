@@ -12,14 +12,14 @@ Features
 
 ## Compatibility
 
-Tested with CKAN 2.8
+Tested with CKAN 2.10
 
 ## Installation
 
 Install to you ckan virtual environment
 
 ```
-pip install -e  git+https://github.com/yhteentoimivuuspalvelut/ckanext-ytp-request#egg=ckanext-ytp-request
+pip install -e  git+https://github.com/belgium-its-steering-committee/ckanext-ytp-request#egg=ckanext-ytp-request
 ```
 
 Add to ckan.ini

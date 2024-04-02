@@ -1,15 +1,20 @@
 import uuid
 import datetime
-
-from sqlalchemy import Column, MetaData, ForeignKey
-from sqlalchemy import types
-from sqlalchemy.ext.declarative import declarative_base
+import six
 
 from ckan import model
+from ckan.model.meta import metadata as ckan_metadata #type: ignore
+from ckan.plugins import toolkit #type:ignore
 
-log = __import__('logging').getLogger(__name__)
-Base = declarative_base()
-metadata = MetaData()
+from sqlalchemy import Column, ForeignKey #type:ignore
+from sqlalchemy import types #type:ignore
+from sqlalchemy.ext.declarative import declarative_base #type:ignore
+
+
+import logging
+log = logging.getLogger(__name__)
+
+Base = declarative_base(metadata=ckan_metadata)
 
 """CANCEL state is equivalent to DELETE state in member table.
 member - member_request is one to many relationship since we need to log all member_requests to facilitate admins and users
@@ -21,7 +26,7 @@ REQUEST_CANCEL = "cancel"
 
 
 def make_uuid():
-    return str(uuid.uuid4())
+    return six.text_type(uuid.uuid4())
 
 
 class MemberRequest(Base):
@@ -52,4 +57,8 @@ class MemberRequest(Base):
 
 
 def init_tables():
-    Base.metadata.create_all(model.meta.engine)
+    #methods checks for table existence
+    try:
+        Base.metadata.create_all(model.meta.engine)
+    except:
+        toolkit.abort(500, detail=toolkit.u(u"Membership request tables not created in database"))

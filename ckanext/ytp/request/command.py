@@ -1,7 +1,9 @@
+
+from ckan import model
+from ckan.lib.cli import CkanCommand #type:ignore
+
 import logging
-
-from ckan.lib.cli import CkanCommand
-
+log = logging.getLogger(__name__)
 
 class InitDBCommand(CkanCommand):
     """
@@ -36,7 +38,6 @@ class InitDBCommand(CkanCommand):
         self.log = logging.getLogger(__name__)
 
         # if cmd == 'initdb':
-        import ckan.model as model
         model.Session.remove()
         model.Session.configure(bind=model.meta.engine)
 
