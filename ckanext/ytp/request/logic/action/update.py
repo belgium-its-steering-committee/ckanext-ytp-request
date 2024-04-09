@@ -1,6 +1,6 @@
 from ckan import model
 from ckanext.ytp.request.model import MemberRequest
-from ckanext.ytp.request.mail import mail_process_status
+from ckanext.ytp.request.logic.mail.mail import mail_process_status
 from ckan.plugins import toolkit #type:ignore
 #FIXME dont use c or g
 from ckan.common import c

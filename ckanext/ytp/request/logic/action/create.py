@@ -3,7 +3,7 @@ from ckan import model
 from ckan.lib.dictization import model_dictize #type:ignore
 from ckan.plugins import toolkit #type:ignore
 from ckanext.ytp.request.model import MemberRequest
-from ckanext.ytp.request.mail import mail_new_membership_request
+from ckanext.ytp.request.logic.mail.mail import mail_new_membership_request
 
 #use toolkit
 #import ckan.lib.helpers as helpers

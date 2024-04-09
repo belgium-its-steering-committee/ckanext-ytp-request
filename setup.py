@@ -32,6 +32,6 @@ setup(
         ytp_request=ckanext.ytp.request.plugin:YtpRequestPlugin
 
         [paste.paster_command]
-        initdb = ckanext.ytp.request.command:InitDBCommand
+        initdb = ckanext.ytp.request.command.paster_command:InitDBCommand
     '''
 )

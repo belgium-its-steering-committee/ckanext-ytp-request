@@ -28,6 +28,7 @@ def get_organization_admins(group_id):
                  .join(model.Member, model.User.id == model.Member.table_id)\
                  .filter(model.Member.table_name == "user").filter(model.Member.group_id == group_id)\
                  .filter(model.Member.state == 'active').filter(model.Member.capacity == 'admin'))
+    print("\n\t Return admins::", admins, "\n")
     return admins
 
 

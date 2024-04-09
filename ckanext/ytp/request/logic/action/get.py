@@ -114,21 +114,20 @@ def member_requests_list(context, data_dict):
     members = query.all()
     return _member_list_dictize(members, context)
 
-#TODO huh?
+#TODO all roles just be available
 @side_effect_free
 def get_available_roles(context, data_dict=None):
     roles = toolkit.get_action("member_roles_list")(context, {})
-
-    # Remove member role from the list
-    roles = [role for role in roles if role['value'] != 'member']
-
+    # Remove member role from the list - if needed
+    # roles = [role for role in roles if role['value'] != 'member']
     # If organization has no associated admin, then role editor is not
     # available
     organization_id = toolkit.get_or_bust(data_dict, 'organization_id')
-
+    print("\t\n Organization_id ::", organization_id, "\n")
     if organization_id:
         if toolkit.h.get_organization_admins(organization_id):
             roles = [role for role in roles if role['value'] != 'editor']
+            print("\t\n ROLES_03::", roles, "\n")
         return roles
     else:
         return None

@@ -4,9 +4,9 @@ from ckan.lib.plugins import DefaultTranslation #type:ignore
 
 from ckanext.ytp.request.logic.action import get, create, update, delete
 from ckanext.ytp.request.logic.auth import get as auth_get, create as auth_create, update as auth_update, delete as auth_delete
-from ckanext.ytp.request.cli import get_commands
+from ckanext.ytp.request.command.cli import get_commands
 from ckanext.ytp.request import blueprint
-from ckanext.ytp.request import helper
+from ckanext.ytp.request.logic.helper import helper
 
 import logging
 log = logging.getLogger(__name__)

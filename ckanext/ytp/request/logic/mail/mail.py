@@ -1,21 +1,29 @@
-from ckan.lib.i18n import set_lang, get_lang
-from ckan.lib.mailer import mail_user
+from ckan.plugins import toolkit #type:ignore
+from ckan.lib.i18n import set_lang, get_lang #type:ignore
+
+#Depriciated
+#from ckan.lib.mailer import mail_user
 #from pylons import i18n
-from ckan.common import _
+
+
+#USE TOOKOIT
+#from ckan.common import _
+
+
+from ckanext.ytp.request.logic.mail.sqs import send_sqs_message #type:ignore
+
+
 import logging
-
-from ckanext.ytp.request.sqs import send_sqs_message
-
 log = logging.getLogger(__name__)
 
 
 def _SUBJECT_MEMBERSHIP_REQUEST():
-    return _(
-        "New membership request (%(organization)s)")
+    return toolkit._(
+        u"New membership request (%(organization)s)")
 
 
 def _MESSAGE_MEMBERSHIP_REQUEST():
-    return _("""\
+    return toolkit._(u"""\
 User %(user)s (%(email)s) has requested membership to organization %(organization)s.
 
 %(link)s
@@ -26,12 +34,12 @@ Best regards
 
 
 def _SUBJECT_MEMBERSHIP_APPROVED():
-    return _(
+    return toolkit._(
         "Organization membership approved (%(organization)s)")
 
 
 def _MESSAGE_MEMBERSHIP_APPROVED():
-    return _("""\
+    return toolkit._("""\
 Your membership request to organization %(organization)s with %(role)s access has been approved.
 
 Best regards
@@ -40,12 +48,12 @@ Best regards
 
 
 def _SUBJECT_MEMBERSHIP_REJECTED():
-    return _(
+    return toolkit._(
         "Organization membership rejected (%(organization)s)")
 
 
 def _MESSAGE_MEMBERSHIP_REJECTED():
-    return _("""\
+    return toolkit._("""\
 Your membership request to organization %(organization)s with %(role)s access has been rejected.
 
 Best regards
@@ -122,11 +130,12 @@ def _mail_user(user, subject, message, context="User"):
     else:
         #TODO
         send_sqs_message(user, subject, message)
-        mail_user(user, subject, message)
+        #Depriciated - spamfilter blocks to much
+        #mail_user(user, subject, message)
 
 #TODO
-#def _reset_lang():
-    #try:
-        #i18n.set_lang(None)
-    #except TypeError:
-        #pass
+def _reset_lang():
+    try:
+        i18n.set_lang(None)
+    except TypeError:
+        pass
