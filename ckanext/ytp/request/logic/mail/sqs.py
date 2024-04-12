@@ -1,14 +1,8 @@
-# coding=utf-8
-import json
 import logging
 import uuid
 import six
 from datetime import datetime
 from ckan.plugins import toolkit #type:ignore
-
-#use tookit
-#from ckan.common import config
-
 import boto3 #type:ignore
 
 log = logging.getLogger(__name__)
@@ -51,9 +45,7 @@ def send_sqs_message(user, subject, message):
     else:
         #TODO
         """
-        Response from SQS OK - message recieved?ToCheck
-        LAMBDA test works and sends mail
-        SQS to LAMBDA does not work yet
+        cath sqs-lambda errors
         """
         response = sqs.send_message(
             QueueUrl = toolkit.config.get('ckan.sqs.queue_url'),
@@ -62,6 +54,5 @@ def send_sqs_message(user, subject, message):
             MessageAttributes = message_attributes,
             MessageBody = message
         )
-
-        print('\n\tMessageResponse:: ', response)
+        log.info("YTP-request messages send. Response:: ", response)
           

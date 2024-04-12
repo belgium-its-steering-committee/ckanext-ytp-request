@@ -3,7 +3,6 @@
 {% block page_primary_action %}
   {{ super() }}
        {% if h.check_access('member_request_create', {'organization_id': c.group_dict.id}) and not c.userobj.sysadmin %}
-          <p>{{c.group_dict.id}}</p>
           <a class="btn btn-primary" href="{{ h.url_for('ytp_request.new', organization_id=c.group_dict.id) }}"></a>
               <i class="fa fa-user-plus"></i>
               {% trans %}Request membership{% endtrans %}

@@ -107,17 +107,23 @@ def _create_member_request(context, data_dict):
     if role == 'admin':
         for admin in _get_ckan_admins():
             #FIXME
-            """If statement used for testing"""
+            """
+            If statement used for testing
             if admin.display_name == "Felten Vanballenberge SysAdmin":
-                mail_new_membership_request(
-                    locale, admin, group.display_name, url, userobj.display_name, userobj.email)
+            """
+            mail_new_membership_request(
+                locale, admin, group.display_name, url, userobj.display_name, userobj.email)
+            
     else:
         for admin in _get_organization_admins(group.id):
             #FIXME
-            """if statement used for testing"""
+            """
+            if statement used for testing
             if admin.display_name == "Felten Vanballenberge SysAdmin":
-                mail_new_membership_request(
-                    locale, admin, group.display_name, url, userobj.display_name, userobj.email)
+            """
+            mail_new_membership_request(
+                locale, admin, group.display_name, url, userobj.display_name, userobj.email)
+            
     return member
 
 
