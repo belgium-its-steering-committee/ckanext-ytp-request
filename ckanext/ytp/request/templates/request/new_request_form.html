@@ -1,5 +1,5 @@
 {% import 'macros/form.html' as form %}
-{% asset  "request_js/request.js" %}
+{% asset 'ytp-request/ytp-request-js'%}
 
 <form class="dataset-form form-horizontal" method="post" data-module="basic-form">
   {% block error_summary %}
@@ -14,7 +14,7 @@
           <option value="" {% if not selected_organization %} selected="selected" {% endif %}>{{ _('Select an organization...') }}</option>
           {% for organization in organizations %}
             {% set select = (selected_organization and selected_organization == organization.id) %}
-            <option value="{{ organization.id }}" {% if select %} selected="selected" {% endif %}>{{ organization.name }}</option>
+            <option value="{{ organization.id }}" {% if select %} selected="selected" {% endif %}>{{ organization.title or organization.name }}</option>
           {% endfor %}
         </select>
       </div>
