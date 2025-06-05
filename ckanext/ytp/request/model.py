@@ -61,4 +61,4 @@ def init_tables():
     try:
         Base.metadata.create_all(model.meta.engine)
     except:
-        toolkit.abort(500, detail=toolkit.u(u"Membership request tables not created in database"))
+        toolkit.abort(500, detail="Membership request tables not created in database")

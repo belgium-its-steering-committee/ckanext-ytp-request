@@ -35,7 +35,7 @@ def member_request_cancel(context, data_dict):
     member = query.first()
 
     if not member or not member.group.is_organization:
-        raise toolkit.ObjectNotFound(404, detail=toolkit._(u"No membership request found for given organization"))
+        raise toolkit.ObjectNotFound(toolkit._("No membership request found for given organization"))
 
     return _process_request(context, organization_id, member, 'pending')
 
@@ -56,7 +56,7 @@ def member_request_membership_cancel(context, data_dict):
     member = query.first()
 
     if not member or not member.group.is_organization:
-        raise toolkit.ObjectNotFound(404, detail=toolkit._(u"No active memberschip found for given organization"))
+        raise toolkit.ObjectNotFound(toolkit._("No active memberschip found for given organization"))
 
     return _process_request(context, organization_id, member, 'active')
 
@@ -87,7 +87,7 @@ def _process_request(context, organization_id, member, status):
         .first()
 
     # BFW: Create a new instance every time membership status is changed
-    message = toolkit._(u'MemberRequest cancelled by own user')
+    message = toolkit._('MemberRequest cancelled by own user')
     mrequest_date = func.now()
     locale = toolkit.h.get_safe_locale()
     if member_request is not None and member_request.status == status:

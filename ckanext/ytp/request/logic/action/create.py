@@ -43,13 +43,13 @@ def _create_member_request(context, data_dict):
     """
     role = data_dict.get('role', None)
     if not role:
-        raise toolkit.ObjectNotFound(404,toolkit._("No role available"))
+        raise toolkit.ObjectNotFound(toolkit._("No role available"))
         #raise logic.NotFound
     
     #Get <Group> from ckan-model(db)
     group = model.Group.get(data_dict.get('group', None))
     if not group or group.type != 'organization':
-        raise toolkit.ObjectNotFound(404, toolkit._("No organization or group found"))
+        raise toolkit.ObjectNotFound(toolkit._("No organization or group found"))
         #raise logic.NotFound
     
     user = toolkit.current_user
@@ -60,7 +60,7 @@ def _create_member_request(context, data_dict):
     #Get <user> from ckan-model(db)
     userobj = model.User.get(user.id)
 
-    #If exsists, get <member> of a <group>(aka organisation)
+    #If exists, get <member> of a <group>(aka organisation)
     member = model.Session.query(model.Member)\
         .filter(model.Member.table_name == "user")\
         .filter(model.Member.table_id == userobj.id)\
@@ -106,21 +106,11 @@ def _create_member_request(context, data_dict):
     # Locale should be admin locale since mail is sent to admins
     if role == 'admin':
         for admin in _get_ckan_admins():
-            #FIXME
-            """
-            If statement used for testing
-            if admin.display_name == "Felten Vanballenberge SysAdmin":
-            """
             mail_new_membership_request(
                 locale, admin, group.display_name, url, userobj.display_name, userobj.email)
             
     else:
         for admin in _get_organization_admins(group.id):
-            #FIXME
-            """
-            if statement used for testing
-            if admin.display_name == "Felten Vanballenberge SysAdmin":
-            """
             mail_new_membership_request(
                 locale, admin, group.display_name, url, userobj.display_name, userobj.email)
             

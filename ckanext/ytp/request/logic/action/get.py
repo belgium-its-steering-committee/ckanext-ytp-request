@@ -28,7 +28,7 @@ def member_request(context, data_dict):
 
     membership = model.Session.query(model.Member).get(mrequest_id)
     if not membership or membership.state != 'pending':
-        raise toolkit.ObjectNotFound(404, detail=toolkit.u(u"Member request not found"))
+        raise toolkit.ObjectNotFound("Member request not found")
 
     # Return most current instance from memberrequest table
     member_request_obj = model.Session.query(MemberRequest)\
@@ -36,7 +36,7 @@ def member_request(context, data_dict):
         .order_by(MemberRequest.request_date.desc()).limit(1).first()
     
     if not member_request_obj or member_request_obj.status != 'pending':
-        raise toolkit.ObjectNotFound (404,toolkit._(u"Member request associated with membership not found"))
+        raise toolkit.ObjectNotFound (toolkit._("Member request associated with membership not found"))
 
     member_dict = {
         'id': mrequest_id,
