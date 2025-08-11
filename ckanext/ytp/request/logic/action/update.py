@@ -48,34 +48,30 @@ def _process(context, action, data_dict):
     mrequest_id = data_dict.get("mrequest_id")
     role = data_dict.get("role", None)
     if not mrequest_id:
-        raise toolkit.ObjectNotFound(404, detail=toolkit._(u"No member request ID"))
+        raise toolkit.ObjectNotFound(toolkit._("No member request ID"))
     if role is not None and str(role) not in ['admin', 'editor']:
-        raise toolkit.ValidationError(toolkit._(u"Role ({0}) is not a valid value".format(role)))
+        raise toolkit.ValidationError(toolkit._("Role ({0}) is not a valid value".format(role)))
 
     member = model.Session.query(model.Member)\
         .filter(model.Member.id == mrequest_id)\
         .first()
 
     if member is None or member.group.is_organization is None:
-        raise toolkit.ObjectNotFound(404, detail=toolkit._(u"No member found"))
+        raise toolkit.ObjectNotFound(toolkit._("No member found"))
     if member.state != 'pending':
-        raise toolkit.ValidationError(400, detail = toolkit._(u"Membership request was not in pending state"))
+        raise toolkit.ValidationError(toolkit._("Membership request was not in pending state"))
 
     # Update existing member instance
     member.state = state
     if role:
         member.capacity = role
     
-    revision = model.repo.new_revision()
-    revision.author = user
-
     if approve:
-        message = toolkit._(u'Member request approved by admin.')
+        message = toolkit._('Member request approved by admin.')
     else:
-        message = toolkit._(u'Member request rejected by log.')
+        message = toolkit._('Member request rejected by log.')
     if role:
-        message = message + toolkit._(u" Role changed")
-    revision.message = message
+        message = message + toolkit._(" Role changed")
 
     # TODO: Move this query to a helper method since it is widely used
     # Fetch the newest member_request associated to this membership (sort by
@@ -96,10 +92,10 @@ def _process(context, action, data_dict):
         member_request.role = role
     member.save()
 
-    model.repo.commit()
+    model.Session.commit()
 
     member_user = model.Session.query(model.User).get(member.table_id)
-    admin_user = model.User.get(user)
+    admin_user = model.User.get(user.name)
 
     locale = member_request.language or toolkit.h.get_default_locale()
     _log_process(member_user, member.group.display_name, approve, admin_user)

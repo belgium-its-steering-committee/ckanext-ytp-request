@@ -182,19 +182,31 @@ def _save_new(context, data_dict):
         toolkit.abort(400, detail = str(e))
 
 def _list_organizations():
-    context = {}
-    data_dict = {}
-    data_dict['all_fields'] = True
-    data_dict['include_datset_count'] = False
-    data_dict['include_extras'] = False
-    data_dict['include_tags']= False
-    data_dict['include_users'] = False
     #TODO: Filter organization_list
     """
     Filter out organizations where the user is already a member or has a pending request
     """
     try:
-        return toolkit.get_action('organization_list')(context, data_dict)
+        # organization_list has a limit of 25 orgs request at a time when all_fields is enabled
+        # https://github.com/ckan/ckan/blob/2.11/ckan/logic/action/get.py#L346
+        start = 0
+        batch_size = 25
+        all_orgs = []
+
+        while True:
+            batch = toolkit.get_action('organization_list')({}, {
+                'include_dataset_count': False,
+                'all_fields': True,
+                'limit': batch_size,
+                'offset': start
+            })
+
+            if not batch:
+                break
+
+            all_orgs.extend(batch)
+            start += batch_size   
+        return all_orgs
     except toolkit.ObjectNotFound:
         toolkit.abort(404, detail="No organization are found")
 

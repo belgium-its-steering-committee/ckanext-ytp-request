@@ -1,18 +1,6 @@
 from ckan.plugins import toolkit #type:ignore
 from ckan.lib.i18n import set_lang, get_lang #type:ignore
 
-#Depriciated
-#from ckan.lib.mailer import mail_user
-#from pylons import i18n
-
-
-#USE TOOKOIT
-#from ckan.common import _
-
-
-from ckanext.ytp.request.logic.mail.sqs import send_sqs_message #type:ignore
-
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -95,7 +83,7 @@ def mail_process_status(locale, member_user, approve, group_name, capacity):
     #else:
         #set_lang(locale)
 
-    role_name = _(capacity)
+    role_name = toolkit._(capacity)
 
     subject_template = _SUBJECT_MEMBERSHIP_APPROVED(
     ) if approve else _SUBJECT_MEMBERSHIP_REJECTED()
@@ -128,10 +116,7 @@ def _mail_user(user, subject, message, context="User"):
             context.lower()
         ))
     else:
-        #TODO
-        send_sqs_message(user, subject, message)
-        #Depriciated - spamfilter blocks to much
-        #mail_user(user, subject, message)
+        toolkit.mail_user(user, subject, message)
 
 #TODO
 def _reset_lang():
