@@ -126,7 +126,7 @@ def get_available_roles(context, data_dict=None):
     print("\t\n Organization_id ::", organization_id, "\n")
     if organization_id:
         if toolkit.h.get_organization_admins(organization_id):
-            roles = [role for role in roles if role['value'] != 'editor']
+            roles = [role for role in roles if role['value'] != 'admin']
             print("\t\n ROLES_03::", roles, "\n")
         return roles
     else:
